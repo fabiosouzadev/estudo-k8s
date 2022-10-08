@@ -1,0 +1,45 @@
+# https://kubernetes.io/docs/concepts/services-networking/service/
+apiVersion: v1
+kind: Service
+metadata:
+  name: wp-service
+  namespace: default
+spec:
+  selector:
+    app: wp-container
+  type: LoadBalancer
+  ports:
+  - port: 80
+---
+# https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  wp-container
+  namespace: default
+  labels:
+    app: wp
+spec:
+  selector:
+    matchLabels:
+      app: wp-container
+  template:
+    metadata:
+      labels:
+        app:  wp-container
+    spec:
+      containers:
+      - name:  wp-container
+        image:  wordpress:4.8-apache
+        env:
+        - name: WORDPRESS_DB_HOST
+          value: mysql-svc
+        - name: WORDPRESS_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-pass
+              key: password
+        ports:
+        - containerPort:  80
+---
+
